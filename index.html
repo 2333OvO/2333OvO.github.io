@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="11/11.ico">
+    <title>kami</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            overflow-x: hidden;
+        }
+
+        .video-background {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            min-width: 100%;
+            min-height: 100%;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1;
+            filter: brightness(0.8);
+        }
+
+        .content {
+            position: relative;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            color: white;
+        }
+
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .main-content {
+            max-width: 800px;
+            z-index: 1;
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            animation: fadeInUp 1s ease;
+            background: linear-gradient(45deg, #FFF6EB, #DFD1C5, #DFD1C5);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            display: inline-block;
+            padding: 0 10px;
+            background-size: 200% auto;
+
+            /* TYPE */
+            overflow: hidden;
+            border-right: 2px solid rgba(255,255,255,0.75); /* 光标效果 */
+            white-space: nowrap;
+            margin: 0 auto;
+            animation: 
+            typing 3.5s steps(14, end),
+            blink-caret 0.75s step-end infinite;
+      }
+
+            @keyframes typing {
+                from { width: 0 }
+                to { width: 100% }
+      }
+
+            @keyframes blink-caret {
+                from, to { border-color: transparent }
+                50% { border-color: rgba(255,255,255,0.75) }
+      }
+
+    /* 移动端适配 */
+    @media (max-width: 768px) {
+    h1 {
+        font-size: 2.5rem;
+        animation: 
+            typing 2.5s steps(14, end),
+            blink-caret 0.75s step-end infinite;
+    }
+        }
+
+        p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+            animation: fadeInUp 1s ease 0.3s backwards;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 15px 40px;
+            background: rgba(255,255,255,0.2);
+            border: 2px solid white;
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            border-radius: 30px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+            animation: fadeIn 1s ease 0.6s backwards;
+        }
+
+        .cta-button:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        /* TIME */
+        .time-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            text-align: right;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.5);
+            animation: fadeIn 1s ease 0.9s backwards;
+            z-index: 2;
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        }
+
+        .date-display {
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+            color: #e6e6ff;
+            text-shadow: 
+                0 0 10px rgba(102, 204, 255, 0.8),
+                2px 2px 4px rgba(0,0,0,0.6);
+            transform: perspective(100px) rotateX(5deg);
+            letter-spacing: 0.05em;
+        }
+
+        .time-display {
+            font-size: 1.8rem;
+            background: linear-gradient(45deg, #f0f0ff, #b3e5fc);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            display: inline-block;
+            padding: 0 5px;
+            text-shadow: 
+                0 0 15px rgba(179, 229, 252, 0.5),
+                0 0 30px rgba(179, 229, 252, 0.3),
+                2px 2px 6px rgba(0,0,0,0.4);
+            transition: all 0.3s ease;
+            animation: textGlow 3s ease-in-out infinite;
+        }
+
+        /* CT */
+        .countdown-container {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 2;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.5);
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        }
+
+        .countdown {
+            font-size: 1.6rem;
+            background: linear-gradient(45deg, #ffb3d9, #ff99bb);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            padding: 8px 15px;
+            border-radius: 10px;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255,255,255,0.2);
+            animation: textGlow 3s ease-in-out infinite;
+        }
+
+        .days-text {
+            font-size: 0.8rem;
+            display: block;
+            margin-top: 3px;
+            color: #ffe6f0;
+        }
+
+       .countdown-title {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(45deg, #ff99ee, #66ccff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 15px rgba(255,102,128,0.3);
+            animation: textGlow 3s ease-in-out infinite;
+}
+
+        /* MUSIC */
+        .music-container {
+            margin-top: 2rem;
+            opacity: 0.8;
+            transition: opacity 0.3s;
+        }
+
+        .music-container:hover {
+            opacity: 1;
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 2.5rem; }
+            p { font-size: 1rem; }
+            .video-background { display: none; }
+            .content { background: linear-gradient(135deg, #1a1a1a, #2d2d2d); }
+            
+            .time-container {
+                top: 15px;
+                right: 15px;
+            }
+            .date-display {
+                font-size: 1rem;
+                text-shadow: 
+                    0 0 8px rgba(102, 204, 255, 0.8),
+                    1px 1px 3px rgba(0,0,0,0.6);
+            }
+            .time-display {
+                font-size: 1.4rem;
+                text-shadow: 
+                    0 0 12px rgba(179, 229, 252, 0.5),
+                    0 0 24px rgba(179, 229, 252, 0.3),
+                    1px 1px 4px rgba(0,0,0,0.4);
+            }
+            .countdown-container {
+                top: 15px;
+                left: 15px;
+            }
+            .countdown {
+                font-size: 1.2rem;
+                padding: 6px 12px;
+            }
+            .days-text {
+                font-size: 0.6rem;
+            }
+            .countdown-title {
+                font-size: 1.4rem;
+                margin-bottom: 0.3rem;
+            }
+
+            .music-container {
+                width: 90%;
+                margin-top: 1.5rem;
+            }
+            .music-container iframe {
+                width: 100%!important;
+                height: 70px!important;
+            }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes textGlow {
+            0% { opacity: 0.8; }
+            50% { opacity: 1; }
+            100% { opacity: 0.8; }
+        }
+    </style>
+</head>
+<body>
+    <video class="video-background" autoplay muted loop playsinline>
+        <source src="http://cloud.video.taobao.com/play/u/null/p/1/e/6/t/1/510766425473.mp4
+" type="video/mp4">
+        <source src="your-video.webm" type="video/webm">
+        您的浏览器不支持视频播放
+    </video>
+
+    <div class="content">
+        <div class="overlay"></div>
+        
+        <!-- CT -->
+        <div class="countdown-container">
+            <div class="countdown-title">距离2026年高考</div>
+            <div class="countdown" id="countdown">
+                00
+                <span class="days-text">天</span>
+            </div>
+        </div>
+
+        <!-- CL -->
+        <div class="time-container">
+            <div class="date-display" id="dateDisplay"></div>
+            <div class="time-display" id="timeDisplay"></div>
+        </div>
+
+        <!-- 主要内容 -->
+        <div class="main-content">
+            <h1>漫天星空之下    深夜火车之旅</h1>
+            <p>心存迷惘未尝不可，不置可否亦未尝不可，凉风之中，悠闲而又安逸</p>
+            <a href="https://www.aquac.top/ngnl" 
+               class="cta-button" 
+               target="_blank" 
+               rel="noopener noreferrer">
+               进入网页
+            </a>
+        </div>
+
+        <!-- MU -->
+        <div class="music-container">
+            <iframe 
+                frameborder="no" 
+                border="0" 
+                marginwidth="0" 
+                marginheight="0" 
+                width="280" 
+                height="80" 
+                src="https://music.163.com/outchain/player?type=2&id=28684050&auto=0&height=66"
+                allow="autoplay"
+            ></iframe>
+        </div>
+    </div>
+
+    <script>
+        // TUP
+        const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+        
+        function updateTime() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = (now.getMonth() + 1).toString().padStart(2, '0');
+            const date = now.getDate().toString().padStart(2, '0');
+            const weekday = weekdays[now.getDay()];
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+
+            document.getElementById('dateDisplay').textContent = `${year}年${month}月${date}日 ${weekday}`;
+            document.getElementById('timeDisplay').textContent = `${hours}:${minutes}`;
+            
+            const nextMinute = (60 - now.getSeconds()) * 1000 - now.getMilliseconds();
+            setTimeout(updateTime, nextMinute);
+        }
+
+        // COUNTTIME
+        const eventName = "2026高考"; // 在此修改事件名称
+        const targetDate = new Date(2026, 6, 7); // 
+        
+        function updateCountdown() {
+            const current = new Date();
+            current.setHours(0,0,0,0);
+            const target = new Date(targetDate);
+            target.setHours(0,0,0,0);
+            
+            const diff = target - current;
+            const days = Math.floor(diff / 86400000);
+            const titleElement = document.querySelector('.countdown-title');
+    titleElement.innerHTML = ` 距离${eventName}还有`;
+
+            const countdown = document.getElementById('countdown');
+            if(days === 0) {
+                countdown.innerHTML = `<span style="font-size:1rem">就是今天!</span>`;
+            } else if(days < 0) {
+                countdown.innerHTML = `<span style="font-size:1rem">已过期</span>`;
+            } else {
+                countdown.innerHTML = `
+                    ${days.toString().padStart(2, '0')}
+                    <span class="days-text">天</span>
+                `;
+            }
+        }
+
+        // SNOW
+        function createSnow() {
+            const snowflake = document.createElement('div');
+            snowflake.innerHTML = '🌸';
+            snowflake.style.cssText = `
+                position: fixed;
+                color: white;
+                pointer-events: none;
+                font-size: ${Math.random() * 10 + 10}px;
+                top: -20px;
+                left: ${Math.random() * 100}%;
+                opacity: ${Math.random() * 0.5 + 0.5};
+                animation: fall linear ${Math.random() * 3 + 5}s infinite;
+                text-shadow: 0 0 5px rgba(255,255,255,0.5);
+            `;
+            
+            document.body.appendChild(snowflake);
+            setTimeout(() => snowflake.remove(), 7000);
+        }
+
+        // F11
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fall {
+                0% { transform: translateY(0) rotate(0deg); }
+                100% { transform: translateY(100vh) rotate(720deg); }
+            }
+        `;
+        document.head.appendChild(style);
+
+        updateTime();
+        updateCountdown();
+        setInterval(createSnow, 300);
+        setInterval(updateCountdown, 80000000); // 
+    </script>
+</body>
+</html>
