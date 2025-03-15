@@ -281,12 +281,41 @@
             50% { opacity: 1; }
             100% { opacity: 0.8; }
         }
+
+    .bg-switcher {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        z-index: 3;
+    }
+
+    .bg-button {
+        padding: 12px 25px;
+        background: rgba(255,255,255,0.15);
+        border: 1px solid rgba(255,255,255,0.3);
+        color: white;
+        border-radius: 25px;
+        cursor: pointer;
+        backdrop-filter: blur(8px);
+        transition: all 0.3s ease;
+        font-family: 'Microsoft YaHei', sans-serif;
+    }
+
+    .bg-button:hover {
+        background: rgba(255,255,255,0.25);
+        transform: scale(1.05);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+
+    /* animated*/
+    .video-background {
+        transition: opacity 1s ease-in-out;
+    }
     </style>
 </head>
 <body>
     <video class="video-background" autoplay muted loop playsinline>
-        <source src="http://cloud.video.taobao.com/play/u/null/p/1/e/6/t/1/510766425473.mp4
-" type="video/mp4">
+        <source src="http://cloud.video.taobao.com/play/u/null/p/1/e/6/t/1/510766425473.mp4" type="video/mp4">
         <source src="your-video.webm" type="video/webm">
         您的浏览器不支持视频播放
     </video>
@@ -310,6 +339,9 @@
         </div>
 
         <!-- 主要内容 -->
+        <div class="bg-switcher">
+       <button class="bg-button" onclick="changeBackground()">切换背景</button>
+        </div>
         <div class="main-content">
             <h1>漫天星空之下    深夜火车之旅</h1>
             <p>心存迷惘未尝不可，不置可否亦未尝不可，凉风之中，悠闲而又安逸</p>
@@ -418,6 +450,43 @@
         updateCountdown();
         setInterval(createSnow, 300);
         setInterval(updateCountdown, 80000000); // 
+
+         // video 
+    const videoSources = [
+        "https://ik.imagekit.io/hzyyikwfm/12333.mp4?updatedAt=1742061669882",
+        "https://ik.imagekit.io/hzyyikwfm/13v3.mp4?updatedAt=1742062284696",
+        "https://ik.imagekit.io/hzyyikwfm/Karuha_s.mp4?updatedAt=1742063536498" , 
+        "http://cloud.video.taobao.com/play/u/null/p/1/e/6/t/1/510766425473.mp4" 
+    ];
+
+    let currentVideoIndex = 0;
+    const videoElement = document.querySelector('.video-background');
+
+    function changeBackground() {
+        // 淡出
+        videoElement.style.opacity = 0;
+        
+        setTimeout(() => {
+            // source元素
+            const newSource = document.createElement('source');
+            newSource.src = videoSources[currentVideoIndex];
+            newSource.type = 'video/mp4';
+
+            // 清空原有视频源并添加新源
+            videoElement.innerHTML = '';
+            videoElement.appendChild(newSource);
+            
+            // 重新加载
+            videoElement.load();
+            videoElement.play();
+            
+            // 索引
+            currentVideoIndex = (currentVideoIndex + 1) % videoSources.length;
+            
+            // 淡入
+            videoElement.style.opacity = 1;
+        }, 1000);
+    }
     </script>
 </body>
 </html>
