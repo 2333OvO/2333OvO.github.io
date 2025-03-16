@@ -59,7 +59,7 @@
 
         h1 {
             font-size: 3.5rem;
-            margin-bottom: 1rem;
+            margin-bottom: 4em;
             animation: fadeInUp 1s ease;
             background: linear-gradient(45deg, #FFF6EB, #DFD1C5, #DFD1C5);
             -webkit-background-clip: text;
@@ -93,6 +93,7 @@
     @media (max-width: 768px) {
     h1 {
         font-size: 2.5rem;
+        margin-bottom: 4rem;
         animation: 
             typing 2.5s steps(14, end),
             blink-caret 0.75s step-end infinite;
@@ -101,7 +102,8 @@
 
         p {
             font-size: 1.2rem;
-            margin-bottom: 2rem;
+            margin-bottom: 4rem;
+            transition: margin 0.3s ease
             line-height: 1.6;
             animation: fadeInUp 1s ease 0.3s backwards;
         }
@@ -311,6 +313,93 @@
     .video-background {
         transition: opacity 1s ease-in-out;
     }
+
+    .operation-stats {
+    position: fixed;
+    left: 30px;
+    bottom: 40px;
+    z-index: 3;
+    animation: statsEntrance 1.2s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+.stats-container {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 14px 20px;
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    transition: transform 0.3s ease;
+}
+
+.stats-container:hover {
+    transform: translateX(8px);
+}
+
+.time-icon {
+    font-size: 2.2rem;
+    filter: drop-shadow(0 0 8px rgba(255,223,186,0.3));
+    animation: iconFloat 3s ease-in-out infinite;
+}
+
+.days-count {
+    font-size: 2.4rem;
+    font-family: 'Courier New', monospace;
+    background: linear-gradient(135deg, #FFD700 20%, #FFA500 80%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 0 15px rgba(255,165,0,0.3);
+    transition: all 0.5s ease;
+}
+
+.stats-label {
+    display: block;
+    font-size: 0.9rem;
+    color: rgba(255,255,255,0.85);
+    letter-spacing: 1px;
+    margin-top: 2px;
+    font-family: 'Microsoft YaHei', sans-serif;
+}
+
+@keyframes statsEntrance {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes iconFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+}
+
+@media (max-width: 768px) {
+    .operation-stats {
+        left: 15px;
+        bottom: 25px;
+    }
+    .stats-container {
+        padding: 10px 15px;
+        gap: 10px;
+    }
+    .time-icon {
+        font-size: 1.8rem;
+    }
+    .days-count {
+        font-size: 1.8rem;
+    }
+    .stats-label {
+        font-size: 0.7rem;
+    }
+}
     </style>
 </head>
 <body>
@@ -344,13 +433,22 @@
         </div>
         <div class="main-content">
             <h1>漫天星空之下    深夜火车之旅</h1>
-            <p>心存迷惘未尝不可，不置可否亦未尝不可，凉风之中，悠闲而又安逸</p>
+            <p id="random-quote">Loading...</p>
             <a href="https://www.aquac.top/ngnl" 
                class="cta-button" 
                target="_blank" 
                rel="noopener noreferrer">
                进入网页
             </a>
+        <div class="operation-stats">
+        <div class="stats-container">
+        <div class="time-icon">⭐</div>
+        <div class="stats-content">
+            <span class="days-count" id="runningDays">0000</span>
+            <span class="stats-label">Running on</span>
+        </div>
+    </div>
+</div>
         </div>
 
         <!-- MU -->
@@ -487,6 +585,55 @@
             videoElement.style.opacity = 1;
         }, 1000);
     }
-    </script>
+
+// 随机
+ async function getRandomQuote() {
+    try {
+        const response = await fetch('https://v1.hitokoto.cn/');
+        const data = await response.json();
+        return `${data.hitokoto} ——《${data.from}》`;
+    } catch (error) {
+        return "NO GAME NO LIFE";
+    }
+}
+
+// 语录
+async function updateQuote() {
+    const quoteElement = document.getElementById('random-quote');
+    quoteElement.style.opacity = 0;
+    
+    setTimeout(async () => {
+        const newQuote = await getRandomQuote();
+        quoteElement.textContent = newQuote;
+        quoteElement.style.opacity = 1;
+    }, 500);
+}
+
+// 初始化
+updateQuote();
+// 每小时更新一次
+setInterval(updateQuote, 3600000);
+
+// =day
+const launchDate = new Date('2024-08-20');
+let currentDays = 0;
+
+function updateRunningDays() {
+    const diffDays = Math.floor((Date.now() - launchDate) / 864e5);
+    if(diffDays !== currentDays) {
+        const counter = document.getElementById('runningDays');
+        counter.style.opacity = 0;
+        setTimeout(() => {
+            currentDays = diffDays;
+            counter.textContent = String(diffDays).padStart(4, '0');
+            counter.style.opacity = 1;
+        }, 300);
+    }
+}
+
+// 初始化
+updateRunningDays();
+setInterval(updateRunningDays, 60000);
+</script>
 </body>
 </html>
