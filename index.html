@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/meting@2.0.1/dist/Meting.min.js"></script>
+    <link rel="shortcut icon" href="11/11.ico">
+    <title>- Kami - </title>
+    <style>
+       
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            overflow-x: hidden;
+            background: #000;
+        }
+
+        
+        .global-video {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            min-width: 100%;
+            min-height: 100%;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1;
+            filter: brightness(0.8);
+            transition: opacity 1s ease;
+        }
+
+       
+        .page-system {
+            position: relative;
+            min-height: 100vh;
+        }
+
+       
+        .page {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: none;
+        }
+
+        .page.active {
+            opacity: 1;
+            transform: translateX(0);
+            pointer-events: all;
+        }
+
+        .page.exit {
+            transform: translateX(-100%);
+            opacity: 0;
+        }
+
+       
+        .global-nav {
+            position: fixed;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            display: flex;
+            gap: 20px;
+            backdrop-filter: blur(10px);
+            padding: 12px 24px;
+            border-radius: 30px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .nav-item {
+            color: rgba(255,255,255,0.9);
+            text-decoration: none;
+            padding: 8px 20px;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-item::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background: #42b983;
+            transition: all 0.3s ease;
+        }
+
+        .nav-item:hover::after {
+            width: 100%;
+            left: 0;
+        }
+
+        .nav-item.active {
+            background: rgba(66, 185, 131, 0.2);
+            color: #42b983;
+        }
+
+      
+        .hero-container {
+            position: relative;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            color: white;
+        }
+
+      
+        .countdown-module {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 2;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.5);
+            animation: fadeIn 1s ease 0.9s backwards;
+        }
+
+        .countdown-title {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(45deg, #ff99ee, #66ccff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .countdown-timer {
+            font-size: 1.6rem;
+            background: linear-gradient(45deg, #ffb3d9, #ff99bb);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            padding: 8px 15px;
+            border-radius: 10px;
+        }
+
+        
+        .time-module {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            text-align: right;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.5);
+            animation: fadeIn 1s ease 0.9s backwards;
+        }
+
+        .date-display {
+            font-size: 1.2rem;
+            color: #e6e6ff;
+        }
+
+        .time-display {
+            font-size: 1.8rem;
+            background: linear-gradient(45deg, #f0f0ff, #b3e5fc);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+
+        .main-content {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+         h1 {
+        font-size: 3.5rem;
+        margin-bottom: 4rem;
+        /* 新添加的动画效果 */
+        animation: fadeInUp 1.2s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+        background: linear-gradient(45deg, #FFF6EB, #DFD1C5);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        position: relative;
+    }
+
+    @keyframes fadeInUp {
+        0% {
+            opacity: 0;
+            transform: translateY(30px) scale(0.95);
+            filter: blur(4px);
+        }
+        100% {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            filter: blur(0);
+        }
+    }
+
+
+    @keyframes glowPulse {
+        0%, 100% { opacity: 0.3; transform: scale(1); }
+        50% { opacity: 0.6; transform: scale(1.05); }
+    }
+
+        
+        .action-button {
+            display: inline-block;
+            padding: 15px 40px;
+            background: rgba(255,255,255,0.2);
+            border: 2px solid white;
+            color: white;
+            border-radius: 30px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+       
+        .status-module {
+            position: fixed;
+            left: 30px;
+            bottom: 40px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 14px 20px;
+            backdrop-filter: blur(8px);
+        }
+
+     
+        .music-module {
+            margin-top: 2rem;
+            opacity: 0.8;
+            transition: opacity 0.3s;
+        }
+
+       
+        @keyframes typing {
+            from { width: 0 }
+            to { width: 100% }
+        }
+
+        @keyframes blink-caret {
+            from, to { border-color: transparent }
+            50% { border-color: rgba(255,255,255,0.75) }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+   .blog-container {
+    max-width: 800px;
+    margin: 80px auto;
+    padding: 30px 20px;
+    background: transparent;
+    backdrop-filter: none;
+    border-radius: 20px;
+    box-shadow: none;
+}
+
+.section-title {
+    text-align: center;
+    margin-bottom: 2rem;
+    position: relative;
+}
+
+.section-title h2 {
+        color: #66CCFF; 
+        font-size: 2.2rem;
+        margin-bottom: 0.8rem;
+    }
+
+  
+    .section-title p {
+        color: rgba(255,255,255,0.8);
+        font-size: 1.1rem;
+    }
+
+.hologram-line {
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #42b983, transparent);
+    animation: lineGlow 3s ease infinite;
+}
+
+@keyframes lineGlow {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 1; }
+}
+
+.message-form {
+    display: grid;
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.input-group {
+    position: relative;
+}
+
+.input-group input,
+.input-group textarea {
+    width: 100%;
+    padding: 12px;
+    background: rgba(255,255,255,0.05);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-family: inherit;
+    transition: all 0.3s ease;
+}
+
+.input-border {
+    position: absolute;
+    inset: 0;
+    border-radius: 8px;
+    pointer-events: none;
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.1);
+    transition: all 0.3s ease;
+}
+
+.input-group:focus-within .input-border {
+    box-shadow: 0 0 0 2px #42b983;
+}
+
+.submit-btn {
+    justify-self: end;
+    padding: 12px 35px;
+    background: linear-gradient(135deg, #42b983 30%, #3aa374);
+    border: none;
+    border-radius: 25px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(66,185,131,0.3);
+}
+
+.message-list {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.message-item {
+    background: rgba(255,255,255,0.03);
+    padding: 1.5rem;
+    border-radius: 12px;
+    border-left: 3px solid #42b983;
+    animation: itemAppear 0.6s ease;
+}
+
+@keyframes itemAppear {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.message-meta {
+    display: flex;
+    gap: 1rem;
+    color: #42b983;
+    font-size: 0.9em;
+    margin-bottom: 0.8rem;
+}
+
+.message-content {
+    color: rgba(255,255,255,0.9);
+    line-height: 1.6;
+}
+
+.loading-wave {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    padding: 2rem;
+}
+
+.wave-bar {
+    width: 4px;
+    height: 30px;
+    background: #42b983;
+    animation: wave 1s ease infinite;
+}
+
+@keyframes wave {
+    0%, 100% { transform: scaleY(0.3); }
+    50% { transform: scaleY(1); }
+}
+
+@media (max-width: 768px) {
+    .blog-container {
+        margin: 60px 15px;
+        padding: 20px;
+    }
+}
+
+     
+        @media (max-width: 768px) {
+            h1 { font-size: 2.5rem; }
+            .countdown-module { top: 15px; left: 15px; }
+            .time-module { top: 15px; right: 15px; }
+            .status-module { left: 15px; bottom: 25px; }
+        }
+
+.hitokoto-text {
+    font-size: 1.2rem;
+    margin: 1.5rem 0;
+    min-height: 2em;
+    color: rgba(255,255,255,0.9);
+    text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    animation: textFlow 12s ease infinite;
+}
+
+@keyframes textFlow {
+    0%, 100% {
+        opacity: 0.8;
+        transform: translateY(4px);
+    }
+    50% {
+        opacity: 1;
+        transform: translateY(-2px);
+    }
+}
+
+ .quote-mark {
+    color: rgba(255,255,255,0.6);
+    font-size: 0.9em;
+    margin: 0 4px;
+}
+
+.hitokoto-from {
+    margin-top: 8px;
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.7);
+    font-style: italic;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+.hitokoto-text:hover .hitokoto-from {
+    opacity: 1;
+} 
+
+ .toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 12px 25px;
+    border-radius: 25px;
+    backdrop-filter: blur(10px);
+    animation: toastIn 0.3s ease;
+}
+
+@keyframes toastIn {
+    from { opacity: 0; transform: translate(-50%, 10px); }
+    to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+.toast-success {
+    background: rgba(66,185,131,0.15);
+    border: 1px solid rgba(66,185,131,0.3);
+    color: #42b983;
+}
+
+.toast-warning {
+    background: rgba(255,165,0,0.15);
+    border: 1px solid rgba(255,165,0,0.3);
+    color: #ffa500;
+}
+
+ .bg-toggle-btn {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            padding: 14px 32px;
+            border: none;
+            border-radius: 30px;
+            background: rgba(255,255,255,0.08);
+            backdrop-filter: blur(12px);
+            color: rgba(255,255,255,0.9);
+            font-size: 1.1rem;
+            cursor: pointer;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+            z-index: 1000;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+
+ .bg-toggle-btn:hover {
+            background: rgba(66,185,131,0.15);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px rgba(66,185,131,0.25);
+        }
+
+  .bg-toggle-btn:hover .btn-text {
+            text-shadow: 0 0 8px rgba(66,185,131,0.6);
+        }
+
+   .btn-text {
+            position: relative;
+            z-index: 2;
+            transition: text-shadow 0.3s ease;
+        }
+
+    .btn-hover-effect {
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(66,185,131,0.2),
+                transparent
+            );
+            transition: left 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+    .bg-toggle-btn:hover .btn-hover-effect {
+            left: 100%;
+        }
+
+       
+        .global-video.fade-out {
+            opacity: 0;
+        }
+
+  .about-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        padding: 40px 20px;
+        color: white;
+    }
+
+    .contact-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 40px;
+        max-width: 800px;
+        margin: 3rem auto;
+        width: 100%;
+    }
+
+    .contact-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 30px;
+        border-radius: 20px;
+        background: rgba(255,255,255,0.05);
+        transition: all 0.3s ease;
+        text-decoration: none;
+        color: rgba(255,255,255,0.9);
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .contact-card:hover {
+        background: rgba(66,185,131,0.15);
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(66,185,131,0.2);
+    }
+
+    .contact-card i {
+        margin-bottom: 15px;
+        transition: all 0.3s ease;
+    }
+
+    .contact-card span {
+        font-size: 1.1rem;
+        text-align: center;
+    }
+
+    .about-text {
+        text-align: center;
+        margin-top: 3rem;
+        font-size: 1.2rem;
+        line-height: 2;
+        opacity: 0.8;
+    }
+
+    @media (max-width: 768px) {
+        .contact-grid {
+            gap: 20px;
+            grid-template-columns: 1fr;
+            max-width: 400px;
+        }
+        
+        .contact-card {
+            padding: 25px;
+        }
+    }
+
+    </style>
+</head>
+<body>
+    <video class="global-video" autoplay muted loop playsinline>
+        <source src="http://cloud.video.taobao.com/play/u/null/p/1/e/6/t/1/510766425473.mp4" type="video/mp4">
+    </video>
+
+    <button id="bgToggle" class="bg-toggle-btn">
+        <span class="btn-text">切换背景</span>
+        <div class="btn-hover-effect"></div>
+    </button>
+
+
+    <nav class="global-nav">
+        <a href="#home" class="nav-item active" data-page="home">首页</a>
+        <a href="#blog" class="nav-item" data-page="blog">留言</a>
+        <a href="#about" class="nav-item" data-page="about">关于</a>
+    </nav>
+
+  
+    <div class="page-system">
+       
+        <section id="home" class="page active">
+            <div class="hero-container">
+          
+                <div class="countdown-module">
+                    <div class="countdown-title">距离2026年高考</div>
+                    <div class="countdown-timer" id="countdown">00 天</div>
+                </div>
+
+            
+                <div class="time-module">
+                    <div class="date-display" id="dateDisplay"></div>
+                    <div class="time-display" id="timeDisplay"></div>
+                </div>
+
+                <!-- 主内容 -->
+                <div class="main-content">
+                    <h1>漫天星空之下    深夜火车之旅</h1>
+                    <p id="dynamic-text" class="hitokoto-text">Loading...</p>
+                    <a href="https://vdse.bdstatic.com/192d9a98d782d9c74c96f09db9378d93.mp4" 
+                       class="action-button" 
+                       target="_blank">
+                       随机涩图
+                    </a>
+                </div>
+
+              
+                <div class="status-module">
+                    <div class="stats-container">
+                        <span class="icon">⭐</span>
+                        <span class="counter" id="runDays">0000</span>
+                        <span class="label">运行天数</span>
+                    </div>
+                </div>
+
+
+                <div class="music-module">
+                    <meting-js 
+                        server="netease"
+                        type="playlist"
+                        id="8516359876"
+                        fixed="true"
+                        theme="#42b983">
+                    </meting-js>
+                </div>
+            </div>
+        </section>
+
+     
+    <section id="blog" class="page">
+    <div class="blog-container">
+      
+        <div class="section-title">
+            <div class="hologram-line"></div>
+            <h2>时空留言墙</h2>
+            <p>在此处留下你的时空印记</p>
+        </div>
+
+      
+        <form id="messageForm" class="message-form">
+            <div class="input-group">
+                <input type="text" id="username" placeholder="代号（可选）" maxlength="20">
+                <div class="input-border"></div>
+            </div>
+            <div class="input-group">
+                <textarea id="message" placeholder="输入你的时空讯息（最多200字）" required rows="4"></textarea>
+                <div class="input-border"></div>
+            </div>
+            <button type="submit" class="submit-btn">发送量子讯号</button>
+        </form>
+
+ 
+        <div id="messageList" class="message-list">
+ 
+            <div class="loading-wave">
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+       <section id="about" class="page">
+    <div class="about-container">
+        <div class="section-title">
+            <div class="hologram-line"></div>
+            <h2>About</h2>
+            <p>Fighting just to fight</p>
+        </div>
+
+        <div class="contact-grid">
+            <a href="https://github.com" target="_blank" class="contact-card">
+                <i class="fab fa-github fa-3x"></i>
+                <span>GitHub</span>
+            </a>
+            <a href="https://aquac.top/ngnl" target="_blank" class="contact-card">
+                <i class="fas fa-play-circle fa-3x"></i>
+                <span>Music</span>
+            </a>
+        </div>
+
+        <div class="about-text">
+            <p>当你祈求希望</p>
+            <p>也会获得等量的绝望</p>
+    </div>
+
+    <script>
+
+        const SUPABASE_URL = 'https://ysmekkuocufkngojzjlf.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlzbWVra3VvY3Vma25nb2p6amxmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDMyODE0MzAsImV4cCI6MjA1ODg1NzQzMH0.H4Q5T5xeO178hD-uVJ4onA2vW7UJGFH5GpM01qDtE4s';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        function escapeHtml(unsafe) {
+        return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+        function initTimeSystem() {
+            const weekdays = ['日','一','二','三','四','五','六'];
+            
+            function updateDateTime() {
+                const now = new Date();
+        
+                document.getElementById('dateDisplay').textContent = 
+                    `${now.getFullYear()}年${(now.getMonth()+1).toString().padStart(2,'0')}月` +
+                    `${now.getDate().toString().padStart(2,'0')}日 星期${weekdays[now.getDay()]}`;
+                
+     
+                document.getElementById('timeDisplay').textContent = 
+                    `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+
+        
+                setTimeout(updateDateTime, (60 - now.getSeconds()) * 1000);
+            }
+            updateDateTime();
+        }
+
+
+        function initCountdown() {
+            const targetDate = new Date(2026, 6, 7);
+            
+            function updateCountdown() {
+                const currentDate = new Date();
+                const timeDiff = targetDate - currentDate;
+                const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+                
+                document.getElementById('countdown').textContent = 
+                    `${Math.max(days, 0).toString().padStart(2,'0')} 天`;
+
+        
+                setTimeout(updateCountdown, 1000 * 60 * 60 * 24);
+            }
+            updateCountdown();
+        }
+
+
+        function initRunDays() {
+            const launchDate = new Date('2024-02-01');
+            
+            function updateRunDays() {
+                const diff = Date.now() - launchDate;
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                document.getElementById('runDays').textContent = 
+                    days.toString().padStart(4, '0');
+                
+   
+                setTimeout(updateRunDays, 1000 * 60 * 60 * 24);
+            }
+            updateRunDays();
+        }
+
+
+        function initPageSystem() {
+            const pages = document.querySelectorAll('.page');
+            const navItems = document.querySelectorAll('.nav-item');
+            let currentPage = 'home';
+
+            function switchPage(target) {
+     
+                pages.forEach(page => {
+                    if(page.id === target) {
+                        page.classList.add('active');
+                        page.classList.remove('exit');
+                    } else if(page.id === currentPage) {
+                        page.classList.add('exit');
+                        setTimeout(() => page.classList.remove('active'), 600);
+                    }
+                });
+
+      
+                navItems.forEach(item => {
+                    item.classList.toggle('active', item.dataset.page === target);
+                });
+
+                currentPage = target;
+            }
+
+        
+            navItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    if(this.dataset.page !== currentPage) {
+                        switchPage(this.dataset.page);
+                    }
+                });
+            });
+        }
+
+  
+function initHitokoto() {
+    const hitokotoElement = document.getElementById('dynamic-text');
+    
+    function updateHitokoto() {
+        fetch('https://v1.hitokoto.cn')
+            .then(response => response.json())
+            .then(data => {
+                hitokotoElement.innerHTML = `
+                    <span class="quote-mark">「</span>
+                    ${data.hitokoto}
+                    <span class="quote-mark">」</span>
+                    <div class="hitokoto-from">—— ${data.from} ${data.from_who ? `· ${data.from_who}` : ''}</div>
+                `;
+                setTimeout(updateHitokoto, 80000000);
+            })
+            .catch(() => {
+                hitokotoElement.textContent = "NO GAME NO LIFE";
+                // 失败后5秒重试
+                setTimeout(updateHitokoto, 5000);
+            });
+    }
+    
+    updateHitokoto();
+}
+
+  
+async function initMessageBoard() {
+    const form = document.getElementById('messageForm');
+    const list = document.getElementById('messageList');
+
+    async function loadMessages() {
+        try {
+            list.innerHTML = '<div class="loading-wave">加载中...</div>';
+            
+            // 查询数据
+            const { data, error } = await supabase
+                .from('messages')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (error) throw error;
+
+            // 渲染数据
+            list.innerHTML = data.map(msg => `
+                <div class="message-item">
+                    <div class="message-meta">
+                        <span>${msg.username || '神秘访客'}</span>
+                        <span>${new Date(msg.created_at).toLocaleString()}</span>
+                    </div>
+                    <div class="message-content">${escapeHtml(msg.content)}</div>
+                </div>
+            `).join('');
+        } catch (error) {
+            console.error('Supabase错误:', error);
+            list.innerHTML = `<div class="toast toast-warning">数据加载失败（${error.message}）</div>`;
+        }
+    }
+
+    // 初始化加载
+    await loadMessages();
+
+    // 提交事件监听
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const username = document.getElementById('username').value.trim();
+        const content = document.getElementById('message').value.trim();
+
+        if (!content) {
+            showToast('讯息内容不能为空', 'warning');
+            return;
+        }
+
+        try {
+            const { error } = await supabase
+                .from('messages')
+                .insert([{ 
+                    username, 
+                    content,
+                    created_at: new Date().toISOString()
+                }]);
+
+            if (error) throw error;
+
+            form.reset();
+            await loadMessages();
+            showToast('讯号已发送至时空网络', 'success');
+        } catch (error) {
+            console.error('提交错误:', error);
+            showToast(`发送失败：${error.message}`, 'warning');
+        }
+    });
+}
+
+
+        const videoSources = [
+            "https://ik.imagekit.io/hzyyikwfm/13v3.mp4?updatedAt=1742062284696",
+            "https://ik.imagekit.io/hzyyikwfm/12333.mp4?updatedAt=1742061669882",
+            "https://ik.imagekit.io/hzyyikwfm/Karuha_s.mp4?updatedAt=1742063536498" , 
+            "http://cloud.video.taobao.com/play/u/null/p/1/e/6/t/1/510766425473.mp4" 
+        ];
+
+        let currentBgIndex = 0;
+
+        function switchBackground() {
+            const videoContainer = document.querySelector('.global-video');
+            videoContainer.classList.add('fade-out');
+            
+            setTimeout(() => {
+                currentBgIndex = (currentBgIndex + 1) % videoSources.length;
+                videoContainer.querySelector('source').src = videoSources[currentBgIndex];
+                videoContainer.load();
+                videoContainer.play();
+                videoContainer.classList.remove('fade-out');
+            }, 1000);
+        }
+
+
+        // 初始化所有系统
+        document.addEventListener('DOMContentLoaded', () => {
+            initTimeSystem();
+            initCountdown();
+            initRunDays();
+            initPageSystem();
+            initHitokoto();
+            initMessageBoard();
+            document.getElementById('bgToggle').addEventListener('click', switchBackground);
+        });
+    </script>
+</body>
+</html>
